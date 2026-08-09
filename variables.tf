@@ -21,6 +21,7 @@ variable "region" {
 variable "kms_key_name" {
   type        = string
   description = "CMEK key used to encrypt cluster persistent disks and job outputs"
+  sensitive   = true
 
   validation {
     condition     = length(trimspace(var.kms_key_name)) > 0
@@ -51,6 +52,7 @@ variable "service_account" {
 variable "kerberos_root_principal_password_uri" {
   type        = string
   description = "Secret Manager secret version URI holding the Kerberos root principal password"
+  sensitive   = true
 
   validation {
     condition     = length(trimspace(var.kerberos_root_principal_password_uri)) > 0
@@ -61,7 +63,8 @@ variable "kerberos_root_principal_password_uri" {
 variable "kerberos_kms_key" {
   type        = string
   description = "CMEK key used to decrypt the Kerberos root principal password"
-
+  sensitive   = true
+  
   validation {
     condition     = length(trimspace(var.kerberos_kms_key)) > 0
     error_message = "var.kerberos_kms_key must be a non-empty string"

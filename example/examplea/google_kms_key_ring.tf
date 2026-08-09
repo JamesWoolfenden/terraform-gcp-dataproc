@@ -10,6 +10,7 @@ resource "google_kms_crypto_key" "main" {
   lifecycle {
     prevent_destroy = true
   }
+  rotation_period = "100000s"
 }
 
 resource "google_kms_crypto_key" "kerberos" {
@@ -19,4 +20,5 @@ resource "google_kms_crypto_key" "kerberos" {
   lifecycle {
     prevent_destroy = true
   }
+  rotation_period = "100000s"
 }

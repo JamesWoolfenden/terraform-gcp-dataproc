@@ -4,6 +4,11 @@ resource "google_secret_manager_secret" "kerberos" {
   replication {
     auto {}
   }
+
+  rotation {
+    rotation_period   = "2592000s" # 30 days
+    next_rotation_time = timeadd(timestamp(), "2592000s")
+  }
 }
 
 resource "google_secret_manager_secret_version" "kerberos" {
