@@ -64,7 +64,7 @@ variable "kerberos_kms_key" {
   type        = string
   description = "CMEK key used to decrypt the Kerberos root principal password"
   sensitive   = true
-  
+
   validation {
     condition     = length(trimspace(var.kerberos_kms_key)) > 0
     error_message = "var.kerberos_kms_key must be a non-empty string"

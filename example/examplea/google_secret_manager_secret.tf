@@ -6,7 +6,7 @@ resource "google_secret_manager_secret" "kerberos" {
   }
 
   rotation {
-    rotation_period   = "2592000s" # 30 days
+    rotation_period    = "2592000s" # 30 days
     next_rotation_time = timeadd(timestamp(), "2592000s")
   }
 }
