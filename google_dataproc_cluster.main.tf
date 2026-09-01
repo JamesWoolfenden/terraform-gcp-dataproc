@@ -1,10 +1,25 @@
 resource "google_dataproc_cluster" "main" {
   name   = var.name
   region = var.region
+  labels = var.labels
 
   cluster_config {
+    staging_bucket = var.staging_bucket
+    temp_bucket    = var.temp_bucket
+
     encryption_config {
       kms_key_name = var.kms_key_name
+    }
+
+    software_config {
+      image_version = var.image_version
+    }
+
+    dynamic "lifecycle_config" {
+      for_each = var.idle_delete_ttl == null ? [] : [var.idle_delete_ttl]
+      content {
+        idle_delete_ttl = lifecycle_config.value
+      }
     }
 
     gce_cluster_config {

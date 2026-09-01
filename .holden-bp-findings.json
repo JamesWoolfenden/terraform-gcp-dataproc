@@ -1,0 +1,60 @@
+{
+  "scan_date": "2026-09-01T08:57:52Z",
+  "scan_path": ".",
+  "findings": [
+    {
+      "id": "HOLDEN_BP_001",
+      "status": "open",
+      "first_seen": "2026-09-01",
+      "last_seen": "2026-09-01",
+      "principle": "cost",
+      "severity": "MEDIUM",
+      "confidence": "high",
+      "title": "Dataproc cluster has no idle-delete TTL, so a forgotten cluster runs (and bills) forever",
+      "file": "google_dataproc_cluster.main.tf",
+      "line": 5,
+      "resource": "google_dataproc_cluster.main",
+      "explanation": "cluster_config has no lifecycle_config block, so GCP applies no idle_delete_ttl / idle_delete_min_dur. A Dataproc cluster is a standing set of Compute Engine VMs (master + workers); with no idle-shutdown policy, a cluster left idle after a job finishes keeps billing indefinitely until someone notices and deletes it manually. This is the single most common Dataproc cost leak.",
+      "remediation": "Add an optional lifecycle_config block driven by a new variable, e.g.:\n  lifecycle_config {\n    idle_delete_ttl = var.idle_delete_ttl\n  }\nwith var.idle_delete_ttl defaulting to something like \"1800s\" (or left null/empty to opt out for genuinely long-running clusters).",
+      "fixable": false
+    },
+    {
+      "id": "HOLDEN_BP_002",
+      "status": "open",
+      "first_seen": "2026-09-01",
+      "last_seen": "2026-09-01",
+      "principle": "cost",
+      "severity": "LOW",
+      "confidence": "medium",
+      "title": "No staging_bucket/temp_bucket set, so GCP auto-creates an unmanaged GCS bucket outside this module's lifecycle",
+      "file": "google_dataproc_cluster.main.tf",
+      "line": 5,
+      "resource": "google_dataproc_cluster.main",
+      "explanation": "cluster_config sets neither staging_bucket nor temp_bucket. When both are omitted, Dataproc auto-provisions a regional bucket per project to hold job dependencies and cluster staging data. That bucket is not declared in this Terraform config at all, so it has no lifecycle_rule, isn't destroyed when the cluster is destroyed, and isn't visible to anyone reviewing this module's resource list or cost allocation.",
+      "remediation": "Accept staging_bucket/temp_bucket as module inputs pointing at caller-managed, lifecycle-ruled buckets (or provision one alongside the cluster in this module with an explicit lifecycle_rule), so storage cost and retention are visible and controlled in Terraform.",
+      "fixable": false
+    },
+    {
+      "id": "HOLDEN_BP_003",
+      "status": "open",
+      "first_seen": "2026-09-01",
+      "last_seen": "2026-09-01",
+      "principle": "maintainability",
+      "severity": "INFO",
+      "confidence": "medium",
+      "title": "Dataproc cluster has no labels for cost allocation or ownership tracking",
+      "file": "google_dataproc_cluster.main.tf",
+      "line": 1,
+      "resource": "google_dataproc_cluster.main",
+      "explanation": "No labels block on the cluster. Without labels (team, environment, cost-center, etc.), this cluster's spend can't be attributed in billing reports, and it's harder to identify ownership when triaging idle/orphaned clusters.",
+      "remediation": "Add a labels input variable and pass it through: labels = var.labels.",
+      "fixable": false
+    }
+  ],
+  "suggested_policies": [
+    {
+      "rationale": "A Dataproc cluster with no lifecycle_config.idle_delete_ttl has no automatic idle shutdown — the single most common way Dataproc clusters silently run up cost after the job that created them has finished. This is a concrete, unambiguous not_null check with no legitimate reason for every cluster to skip it (a genuinely long-running cluster can still set an explicit, deliberately large TTL, or the check can be suppressed per-resource via holden:ignore).",
+      "yaml": "id: HLD_GCP_XXX\nname: Dataproc clusters should define an idle-delete lifecycle policy\nprinciple: cost\nseverity: LOW\nrationale: |\n  A Dataproc cluster with no cluster_config.lifecycle_config.idle_delete_ttl\n  (or idle_delete_min_dur) never auto-deletes when idle. Clusters are billed\n  for their full VM fleet (master + workers) for as long as they exist, so a\n  forgotten cluster after a batch job completes silently accumulates cost\n  until someone notices and deletes it manually.\nremediation: |\n  Add a lifecycle_config block:\n    cluster_config {\n      lifecycle_config {\n        idle_delete_ttl = \"1800s\"\n      }\n    }\nresources:\n  google_dataproc_cluster:\n    path: cluster_config.lifecycle_config\n    not_null: true\n"
+    }
+  ]
+}

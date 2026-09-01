@@ -82,6 +82,61 @@ variable "readers" {
   }
 }
 
+variable "idle_delete_ttl" {
+  type        = string
+  description = "Duration (e.g. \"1800s\") after which an idle cluster is automatically deleted. Null to disable auto-deletion for long-running clusters"
+  default     = null
+
+  validation {
+    condition     = var.idle_delete_ttl == null || can(regex("^[0-9]+s$", var.idle_delete_ttl))
+    error_message = "var.idle_delete_ttl must be null or a duration string like \"1800s\""
+  }
+}
+
+variable "staging_bucket" {
+  type        = string
+  description = "GCS bucket for cluster staging data (job dependencies, etc.). Null lets Dataproc auto-provision an unmanaged bucket"
+  default     = null
+
+  validation {
+    condition     = var.staging_bucket == null || length(trimspace(var.staging_bucket)) > 0
+    error_message = "var.staging_bucket must be null or a non-empty string"
+  }
+}
+
+variable "temp_bucket" {
+  type        = string
+  description = "GCS bucket for cluster temp/ephemeral data. Null lets Dataproc auto-provision an unmanaged bucket"
+  default     = null
+
+  validation {
+    condition     = var.temp_bucket == null || length(trimspace(var.temp_bucket)) > 0
+    error_message = "var.temp_bucket must be null or a non-empty string"
+  }
+}
+
+variable "labels" {
+  type        = map(string)
+  description = "Labels applied to the cluster for cost allocation and ownership tracking"
+  default     = {}
+
+  validation {
+    condition     = alltrue([for k, v in var.labels : can(regex("^[a-z0-9_-]{1,63}$", k)) && can(regex("^[a-z0-9_-]{0,63}$", v))])
+    error_message = "var.labels keys and values must be lowercase letters, numbers, underscores, or dashes (GCP label constraints)"
+  }
+}
+
+variable "image_version" {
+  type        = string
+  description = "Dataproc image version to pin the cluster to, so upgrades happen deliberately rather than by picking up whatever GCP's default is on creation/recreation"
+  default     = "2.2-debian12"
+
+  validation {
+    condition     = length(trimspace(var.image_version)) > 0
+    error_message = "var.image_version must be a non-empty string"
+  }
+}
+
 variable "cluster_editors" {
   type        = list(string)
   description = "Principals granted roles/dataproc.editor on the cluster, authoritatively for that role. Empty to create no binding"
