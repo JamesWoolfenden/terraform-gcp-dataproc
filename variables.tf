@@ -81,3 +81,14 @@ variable "readers" {
     error_message = "var.readers must not contain allUsers or allAuthenticatedUsers"
   }
 }
+
+variable "cluster_editors" {
+  type        = list(string)
+  description = "Principals granted roles/dataproc.editor on the cluster, authoritatively for that role. Empty to create no binding"
+  default     = []
+
+  validation {
+    condition     = !anytrue([for m in var.cluster_editors : contains(["allUsers", "allAuthenticatedUsers"], m)])
+    error_message = "var.cluster_editors must not contain allUsers or allAuthenticatedUsers"
+  }
+}
