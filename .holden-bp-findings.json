@@ -4,7 +4,7 @@
   "findings": [
     {
       "id": "HOLDEN_BP_001",
-      "status": "open",
+      "status": "fixed",
       "first_seen": "2026-09-01",
       "last_seen": "2026-09-01",
       "principle": "cost",
@@ -20,7 +20,7 @@
     },
     {
       "id": "HOLDEN_BP_002",
-      "status": "open",
+      "status": "fixed",
       "first_seen": "2026-09-01",
       "last_seen": "2026-09-01",
       "principle": "cost",
@@ -36,7 +36,7 @@
     },
     {
       "id": "HOLDEN_BP_003",
-      "status": "open",
+      "status": "fixed",
       "first_seen": "2026-09-01",
       "last_seen": "2026-09-01",
       "principle": "maintainability",
